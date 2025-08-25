@@ -45,7 +45,7 @@ FastAPIInstrumentor.instrument_app(app)
 
 @app.get("/")
 async def welcome_user():
-    return {"message": "Hello! ESTA user"}
+    return {"message": "Feel free to use this template as an initial project setup"}
 
 @app.get("/health")
 async def health_check():
