@@ -10,6 +10,8 @@ from opentelemetry import trace
 from opentelemetry.trace import (get_tracer_provider)
 from logging import getLogger
 
+from starlette.middleware.cors import CORSMiddleware
+
 from config import settings
 from dependencies.database import connect_to_db, disconnect_from_db
 from routes import restaurant_route,menu_item_route
@@ -32,6 +34,14 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version=settings.app_version,
         lifespan=lifespan,
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     # Routers
