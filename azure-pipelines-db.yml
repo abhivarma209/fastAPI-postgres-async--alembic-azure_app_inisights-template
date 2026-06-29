@@ -1,0 +1,63 @@
+# Azure DevOps Pipeline for Database Deployment
+# This pipeline deploys database migrations to PostgreSQL using Alembic
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - models.py
+    - alembic/*
+    - deploy_database.py
+    - azure-pipelines-db.yml
+
+pr:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - models.py
+    - alembic/*
+    - deploy_database.py
+
+variables:
+  # Variable group for deployment secrets
+  - group: deployment-secrets
+  # Python version to use
+  - name: pythonVersion
+    value: '3.11'
+
+stages:
+- stage: DeployDevelopment
+  displayName: 'Deploy to Development Database'
+  jobs:
+  - deployment: DeployToDev
+    displayName: 'Deploy to Development'
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'development-database'
+    
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+              displayName: 'Use Python $(pythonVersion)'
+          
+          - script: |
+              python deploy_database.py --health-check
+            displayName: 'Deploy database migrations with health check'
+            env:
+              PYTHONPATH: $(Build.SourcesDirectory)
+              POSTGRES_HOST: $(POSTGRES_HOST)
+              POSTGRES_DB: $(POSTGRES_DB)
+              POSTGRES_USER: $(POSTGRES_USER)
+              POSTGRES_PASSWORD: $(POSTGRES_PASSWORD)
+              POSTGRES_PORT: $(POSTGRES_PORT)
+
